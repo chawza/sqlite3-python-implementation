@@ -1,13 +1,17 @@
 import sqlite3
 
-connection = sqlite3.connect(":memory:")
+connection = sqlite3.connect(""ActivityDataBase.db")
 cursor = connection.cursor()
 
-cursor.execute("""CREATE TABLE listTable(
-    level TEXT,
-    time TEXT,
-    desc TEXT
-);""")  # time activity is the KEY file
+try:
+    cursor.execute("""CREATE TABLE listTable(
+        level TEXT,
+        time TEXT,
+        desc TEXT
+    );""")  # time activity is the KEY file
+    print("New table has been created!")
+except:
+    print("Existing table found!")
 
 def show_act(choice):
     if choice is "Y" or choice is "y":
@@ -72,7 +76,7 @@ while userInput != 4:
 
     if userInput == 1:
         # show tasks
-        choice = input("do you want to sort the list[Y/N]?")
+        choice = input("do you want to sort the list[Y/N]? ")
         show_act(choice)
 
         input("press enter to continue...")
