@@ -38,6 +38,8 @@ def add_to_list():
         messagebox.showinfo("Update", "task has been added!")
         addTime.delete(0, "end")
         addDes.delete(0, "end")
+        right_frame.destroy()
+        show_list()
 
     else:
         messagebox.showinfo("Entry Error", "Entry Error!")
@@ -45,54 +47,48 @@ def add_to_list():
 
 
 def show_list():
-    # new child window
-    list_frame = tk.Toplevel()
-    list_frame.title("Activity List")
+    global right_frame
+    right_frame = tk.Frame(mainFrame)
+    right_frame.grid(row=0, column=1)
 
     # showing the lists
-    tk.Label(list_frame, text="Priority").grid(row=0, column=1)
-    tk.Label(list_frame, text="Time").grid(row=0, column=2)
-    tk.Label(list_frame, text="Description").grid(row=0, column=3)
+    tk.Label(right_frame, text="Priority", padx=10).grid(row=0, column=0)
+    tk.Label(right_frame, text="Time", padx=10).grid(row=0, column=1)
+    tk.Label(right_frame, text="Description", padx=10, justify=tk.LEFT).grid(row=0, column=2)
 
     cursor.execute("SELECT level, time, desc FROM listTable")
     task_list = cursor.fetchall()
-
     # database is empty
-    if task_list is None:
-        tk.Label(list_frame, text="Database is empty").grid(row=1, column=3)
+    if len(task_list) is 0:
+        tk.Label(right_frame, text="Database is empty!").grid(row=1, column=1)
 
     # record found
     else:
         count = 1
         for task in task_list:
             # each line have one task with type, time, and Description
-            tk.Label(list_frame, text=task[0]).grid(row=count, column=1)
-            tk.Label(list_frame, text=task[1]).grid(row=count, column=2)
-            tk.Label(list_frame, text=task[2]).grid(row=count, column=3)
+            tk.Label(right_frame, text=task[0]).grid(row=count, column=0)
+            tk.Label(right_frame, text=task[1]).grid(row=count, column=1)
+            tk.Label(right_frame, text=task[2]).grid(row=count, column=2)
 
             # print("{}\t{}\t{}\n".format(task[0], task[1], task[2]))
             count = count+1
 
-    # delete tasks from the tables
+
     def delete_task():
         try:
             cursor.execute("DELETE FROM listTable WHERE time = \"{}\"".format(delete_entry.get()))
             messagebox.showinfo("Update", "Database has been updated!")
             connection.commit()
-            list_frame.destroy()
+            right_frame.destroy()
             show_list()
 
         except:
             messagebox.showerror("Entry Error", "Input is incorrect")
-    tk.Label(list_frame, text="Select to Delete by time").grid(row=0, column=4)
-    delete_entry = tk.Entry(list_frame)
-    delete_entry.grid(row=1, column=4)
-    tk.Button(list_frame, text="Delete", command=delete_task).grid(row=2, column=4)
 
-    # dismiss button
-    if count <= 2:
-        count = 3
-    tk.Button(list_frame, text="Dismiss", command=list_frame.destroy).grid(row=count, column=4)
+    delete_entry = tk.Entry(right_frame)
+    delete_entry.grid(row=0, column=3)
+    tk.Button(right_frame, text="Delete by Time", command=delete_task).grid(row=1, column=3)
 
 
 def select_high():
@@ -111,30 +107,31 @@ mainFrame = tk.Tk()
 mainFrame.title("To do list")
 selected_priority = ["Low"]
 
-# adding activity menu
-typeLabel = tk.Label(mainFrame, text="Priority (High, Medium, Low)", justify=tk.RIGHT).grid(row=0, column=0)
+left_frame = tk.Frame(mainFrame)
+left_frame.grid(row=0, column=0)
 
-select_type_frame = tk.Frame(mainFrame)
+right_frame = tk.Frame(mainFrame)
+
+typeLabel = tk.Label(left_frame, text="Priority", justify=tk.RIGHT).grid(row=0, column=0)
+
+select_type_frame = tk.Frame(left_frame)
 select_type_frame.grid(row=0, column=1)
 button_high = tk.Button(select_type_frame, text="High", command=select_high).grid(column=0, row=0)
 button_medium = tk.Button(select_type_frame, text="Medium", command=select_medium).grid(column=1, row=0)
 button_low = tk.Button(select_type_frame, text="Low", command=select_low).grid(column=2, row=0)
 
 
-timeLabel = tk.Label(mainFrame,  text="Time (00:00 - 23:59)", justify=tk.RIGHT).grid(row=1, column=0)
-addTime = tk.Entry(mainFrame)
+timeLabel = tk.Label(left_frame,  text="Time\n(00:00 - 23:59)").grid(row=1, column=0)
+addTime = tk.Entry(left_frame)
 addTime.grid(row=1, column=1)
 
-desLabel = tk.Label(mainFrame, text="Description", justify=tk.RIGHT).grid(row=2, column=0)
-addDes = tk.Entry(mainFrame)
+desLabel = tk.Label(left_frame, text="Description", justify=tk.RIGHT).grid(row=2, column=0)
+addDes = tk.Entry(left_frame)
 addDes.grid(row=2, column=1)
 
-addButton = tk.Button(mainFrame, text="Add", command=add_to_list)
+addButton = tk.Button(left_frame, text="Add", command=add_to_list)
 addButton.grid(row=3, column=1)
 
-
-# below (the task list)
-tk.Button(mainFrame, text="Show Activities", command=show_list).grid(row=4, column=0)
-
+show_list()
 
 mainFrame.mainloop()
