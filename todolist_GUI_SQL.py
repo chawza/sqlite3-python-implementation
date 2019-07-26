@@ -18,22 +18,27 @@ except:
     messagebox.showinfo("information", "Database found!")
 
 
-def add_to_list():
-    time = addTime.get()
-    des = addDes.get()
-
-    split_time = time.split(":")
+def time_input(the_time):
+    split_time = the_time.split(":")
     try:
         # validate the time format within range 00:00 and 23:59
         if int(split_time[1]) > 59 or int(split_time[1]) < 0 or int(split_time[0]) > 23 or int(split_time[0]) < 0:
             messagebox.showerror("time entry error", "incorrect number")
             return
-    except:
+    except Exception:
+        print(the_time)
         messagebox.showerror("time entry error", "wrong input string format")
-        return
+        return 0
+
+    return the_time
+
+
+def add_to_list():
+    time = time_input(addTime.get())
+    des = addDes.get()
 
     # make sure that all entry is not empty
-    if (len(selected_priority[0]) is not 0) or (len(time) is not 0) or (len(des) is not 0):
+    if (len(selected_priority[0]) is not 0) or time != 0 or (len(des) is not 0):
         cursor.execute("INSERT INTO listTable(level, time, desc) Values(?,?,?)", (selected_priority[0], time, des))
         messagebox.showinfo("Update", "task has been added!")
         addTime.delete(0, "end")
@@ -74,17 +79,16 @@ def show_list():
             # print("{}\t{}\t{}\n".format(task[0], task[1], task[2]))
             count = count+1
 
-
     def delete_task():
-        try:
-            cursor.execute("DELETE FROM listTable WHERE time = \"{}\"".format(delete_entry.get()))
-            messagebox.showinfo("Update", "Database has been updated!")
-            connection.commit()
-            right_frame.destroy()
-            show_list()
+        time = time_input(delete_entry.get())
+        if time == 0:
+            return
+        cursor.execute("DELETE FROM listTable WHERE time = \"{}\"".format(time))
+        messagebox.showinfo("Update", "Database has been updated!")
 
-        except:
-            messagebox.showerror("Entry Error", "Input is incorrect")
+        connection.commit()
+        right_frame.destroy()
+        show_list()
 
     delete_entry = tk.Entry(right_frame)
     delete_entry.grid(row=0, column=3)
