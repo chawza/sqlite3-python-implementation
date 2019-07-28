@@ -7,7 +7,7 @@ cursor = connection.cursor()
 
 try:
     cursor.execute("""CREATE TABLE listTable(
-        level TEXT,
+        level INTEGER,
         time TEXT,
         desc TEXT
     );""")  # time activity is the KEY file
@@ -36,10 +36,18 @@ def time_input(the_time):
 def add_to_list():
     time = time_input(addTime.get())
     des = addDes.get()
+    _ = 0
 
     # make sure that all entry is not empty
     if (len(selected_priority[0]) is not 0) or time != 0 or (len(des) is not 0):
-        cursor.execute("INSERT INTO listTable(level, time, desc) Values(?,?,?)", (selected_priority[0], time, des))
+        if selected_priority is "High":
+            level_priority = 2
+        elif selected_priority is "Medium":
+            level_priority = 1
+        else:
+            level_priority = 0
+
+        cursor.execute("INSERT INTO listTable(level, time, desc) Values(?,?,?)", (level_priority, time, des))
         messagebox.showinfo("Update", "task has been added!")
         addTime.delete(0, "end")
         addDes.delete(0, "end")
@@ -54,14 +62,14 @@ def add_to_list():
 def show_list():
     global right_frame
     right_frame = tk.Frame(mainFrame)
-    right_frame.grid(row=0, column=1)
+    right_frame.grid(row=0, column=1, sticky=tk.N)
 
     # showing the lists
     tk.Label(right_frame, text="Priority", padx=10).grid(row=0, column=0)
     tk.Label(right_frame, text="Time", padx=10).grid(row=0, column=1)
     tk.Label(right_frame, text="Description", padx=10, justify=tk.LEFT).grid(row=0, column=2)
 
-    cursor.execute("SELECT level, time, desc FROM listTable")
+    cursor.execute("SELECT level, time, desc FROM listTable ORDER BY level DESC")
     task_list = cursor.fetchall()
     # database is empty
     if len(task_list) is 0:
@@ -72,7 +80,13 @@ def show_list():
         count = 1
         for task in task_list:
             # each line have one task with type, time, and Description
-            tk.Label(right_frame, text=task[0]).grid(row=count, column=0)
+            level = "High"
+            if task[0] == 0:
+                level = "Low"
+            elif task[0] == 1:
+                level = "Medium"
+
+            tk.Label(right_frame, text=level).grid(row=count, column=0)
             tk.Label(right_frame, text=task[1]).grid(row=count, column=1)
             tk.Label(right_frame, text=task[2]).grid(row=count, column=2)
 
@@ -96,23 +110,26 @@ def show_list():
 
 
 def select_high():
-    selected_priority[0] = "High"
+    global selected_priority
+    selected_priority = "High"
 
 
 def select_medium():
-    selected_priority[0] = "Medium"
+    global selected_priority
+    selected_priority = "Medium"
 
 
 def select_low():
-    selected_priority[0] = "Low"
+    global selected_priority
+    selected_priority = "Low"
 
 
 mainFrame = tk.Tk()
 mainFrame.title("To do list")
-selected_priority = ["Low"]
+selected_priority = "Low"
 
 left_frame = tk.Frame(mainFrame)
-left_frame.grid(row=0, column=0)
+left_frame.grid(row=0, column=0, sticky=tk.N + tk.W)
 
 right_frame = tk.Frame(mainFrame)
 
@@ -120,9 +137,9 @@ typeLabel = tk.Label(left_frame, text="Priority", justify=tk.RIGHT).grid(row=0, 
 
 select_type_frame = tk.Frame(left_frame)
 select_type_frame.grid(row=0, column=1)
-button_high = tk.Button(select_type_frame, text="High", command=select_high).grid(column=0, row=0)
+button_high = tk.Button(select_type_frame, text="High", command=select_high).grid(column=2, row=0)
 button_medium = tk.Button(select_type_frame, text="Medium", command=select_medium).grid(column=1, row=0)
-button_low = tk.Button(select_type_frame, text="Low", command=select_low).grid(column=2, row=0)
+button_low = tk.Button(select_type_frame, text="Low", command=select_low).grid(column=0, row=0)
 
 
 timeLabel = tk.Label(left_frame,  text="Time\n(00:00 - 23:59)").grid(row=1, column=0)
